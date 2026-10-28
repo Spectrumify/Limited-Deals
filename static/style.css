@@ -40,6 +40,26 @@ main { padding: 0 16px 16px; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
+.panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: center;
+  margin: 12px 0;
+  padding: 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+}
+.panel input[type="number"] { width: 90px; }
+.panel fieldset { border: none; padding: 0; margin: 0; display: flex; gap: 8px; align-items: center; }
+.panel legend { float: left; margin-right: 6px; padding: 0; }
+.presets { display: flex; gap: 6px; flex-wrap: wrap; }
+input, select, button { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 3px 6px; }
+input[type="checkbox"] { padding: 0; }
+button { cursor: pointer; }
+
 .table-wrap { overflow-x: auto; }
 table {
   width: 100%;

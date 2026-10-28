@@ -1,4 +1,5 @@
 """SQLite storage. One file (limited_deals.db), created automatically."""
+import json
 import sqlite3
 import time
 
@@ -34,7 +35,16 @@ def init_db():
                 key   TEXT PRIMARY KEY,
                 value TEXT
             );
+            CREATE TABLE IF NOT EXISTS presets (
+                name    TEXT PRIMARY KEY,
+                filters TEXT  -- JSON, e.g. {"max_price": 5000, "min_demand": 3}
+            );
         """)
+        # A starter preset, added only the first time.
+        conn.execute(
+            "INSERT OR IGNORE INTO presets (name, filters) VALUES (?, ?)",
+            ("Under 5k, high demand", json.dumps({"max_price": 5000, "min_demand": 3, "hide_projected": True})),
+        )
 
 
 def save_rolimons_items(items):
@@ -80,3 +90,19 @@ def get_meta(key, default=None):
     with connect() as conn:
         row = conn.execute("SELECT value FROM meta WHERE key=?", (key,)).fetchone()
     return row["value"] if row else default
+
+
+def all_presets():
+    with connect() as conn:
+        rows = conn.execute("SELECT name, filters FROM presets ORDER BY name").fetchall()
+    return [{"name": row["name"], "filters": json.loads(row["filters"])} for row in rows]
+
+
+def save_preset(name, filters):
+    with connect() as conn:
+        conn.execute("INSERT OR REPLACE INTO presets (name, filters) VALUES (?, ?)", (name, json.dumps(filters)))
+
+
+def delete_preset(name):
+    with connect() as conn:
+        conn.execute("DELETE FROM presets WHERE name=?", (name,))

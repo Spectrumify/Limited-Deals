@@ -2,7 +2,7 @@
 import logging
 import os
 
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 
 import db
 import refresher
@@ -24,6 +24,27 @@ def api_items():
         item["demand_name"] = DEMAND_NAMES.get(item["demand"], "")
         item["trend_name"] = TREND_NAMES.get(item["trend"], "")
     return jsonify(items)
+
+
+@app.route("/api/presets", methods=["GET"])
+def api_presets():
+    return jsonify(db.all_presets())
+
+
+@app.route("/api/presets", methods=["POST"])
+def api_save_preset():
+    body = request.get_json()
+    name = (body.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "Preset needs a name"}), 400
+    db.save_preset(name, body.get("filters", {}))
+    return jsonify({"ok": True})
+
+
+@app.route("/api/presets/<name>", methods=["DELETE"])
+def api_delete_preset(name):
+    db.delete_preset(name)
+    return jsonify({"ok": True})
 
 
 @app.route("/api/status")

@@ -33,8 +33,108 @@ function compare(a, b) {
   return 0;
 }
 
+// ---------- Filters ----------
+
+function numberOrNull(id) {
+  const text = document.getElementById(id).value;
+  return text === "" ? null : Number(text);
+}
+
+// Read the filter controls into a plain object (this is what presets save).
+function readFilters() {
+  return {
+    min_price: numberOrNull("f-min-price"),
+    max_price: numberOrNull("f-max-price"),
+    min_demand: numberOrNull("f-min-demand"),
+    trends: [...document.querySelectorAll(".f-trend:checked")].map(box => Number(box.value)),
+    max_copies: numberOrNull("f-max-copies"),
+    rare_only: document.getElementById("f-rare-only").checked,
+    hide_projected: document.getElementById("f-hide-projected").checked,
+  };
+}
+
+// Put a filters object back into the controls (used when loading a preset).
+function writeFilters(filters) {
+  document.getElementById("f-min-price").value = filters.min_price ?? "";
+  document.getElementById("f-max-price").value = filters.max_price ?? "";
+  document.getElementById("f-min-demand").value = filters.min_demand ?? "";
+  document.querySelectorAll(".f-trend").forEach(box => {
+    box.checked = (filters.trends || []).includes(Number(box.value));
+  });
+  document.getElementById("f-max-copies").value = filters.max_copies ?? "";
+  document.getElementById("f-rare-only").checked = !!filters.rare_only;
+  document.getElementById("f-hide-projected").checked = !!filters.hide_projected;
+}
+
+function passesFilters(item, f) {
+  if (item.lowest_price == null) return false;
+  if (f.min_price != null && item.lowest_price < f.min_price) return false;
+  if (f.max_price != null && item.lowest_price > f.max_price) return false;
+  if (f.min_demand != null && item.demand < f.min_demand) return false;
+  if (f.trends.length > 0 && !f.trends.includes(item.trend)) return false;
+  if (f.max_copies != null && (item.total_quantity == null || item.total_quantity > f.max_copies)) return false;
+  if (f.rare_only && !item.rare) return false;
+  if (f.hide_projected && item.projected) return false;
+  return true;
+}
+
+// ---------- Presets ----------
+
+let presets = [];
+
+async function loadPresets() {
+  presets = await (await fetch("/api/presets")).json();
+  const select = document.getElementById("preset-select");
+  const current = select.value;
+  select.innerHTML = '<option value="">— Presets —</option>';
+  for (const preset of presets) {
+    const option = document.createElement("option");
+    option.value = option.textContent = preset.name;
+    select.appendChild(option);
+  }
+  select.value = current;
+}
+
+document.getElementById("preset-select").addEventListener("change", event => {
+  const preset = presets.find(p => p.name === event.target.value);
+  if (preset) {
+    writeFilters(preset.filters);
+    render();
+  }
+});
+
+document.getElementById("preset-save").addEventListener("click", async () => {
+  const name = prompt("Name for this preset:", document.getElementById("preset-select").value);
+  if (!name) return;
+  await fetch("/api/presets", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, filters: readFilters() }),
+  });
+  await loadPresets();
+  document.getElementById("preset-select").value = name;
+});
+
+document.getElementById("preset-delete").addEventListener("click", async () => {
+  const name = document.getElementById("preset-select").value;
+  if (!name || !confirm(`Delete preset "${name}"?`)) return;
+  await fetch(`/api/presets/${encodeURIComponent(name)}`, { method: "DELETE" });
+  await loadPresets();
+});
+
+document.getElementById("filters-clear").addEventListener("click", () => {
+  writeFilters({});
+  document.getElementById("preset-select").value = "";
+  render();
+});
+
+document.getElementById("filters").addEventListener("input", render);
+
+// ---------- Table ----------
+
 function render() {
-  const rows = items.filter(item => item.lowest_price != null).sort(compare);
+  const filters = readFilters();
+  const rows = items.filter(item => passesFilters(item, filters)).sort(compare);
   document.getElementById("count").textContent = `${rows.length} items.`;
 
   const tbody = document.querySelector("#items tbody");
@@ -93,5 +193,6 @@ async function refresh() {
   await Promise.all([loadItems(), loadStatus()]);
 }
 
+loadPresets();
 refresh();
 setInterval(refresh, 30000);  // only reads our local server, not Roblox

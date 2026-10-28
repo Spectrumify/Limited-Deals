@@ -14,8 +14,40 @@
   </header>
 
   <main>
+    <section id="filters" class="panel">
+      <label>Price min <input type="number" id="f-min-price" min="0" step="50"></label>
+      <label>Price max <input type="number" id="f-max-price" min="0" step="50"></label>
+      <label>Min demand
+        <select id="f-min-demand">
+          <option value="">Any</option>
+          <option value="1">Low+</option>
+          <option value="2">Normal+</option>
+          <option value="3">High+</option>
+          <option value="4">Amazing</option>
+        </select>
+      </label>
+      <fieldset>
+        <legend>Trend</legend>
+        <label><input type="checkbox" class="f-trend" value="3"> Rising</label>
+        <label><input type="checkbox" class="f-trend" value="2"> Stable</label>
+        <label><input type="checkbox" class="f-trend" value="0"> Falling</label>
+        <label><input type="checkbox" class="f-trend" value="1"> Unstable</label>
+        <label><input type="checkbox" class="f-trend" value="4"> Fluctuating</label>
+      </fieldset>
+      <label>Max copies <input type="number" id="f-max-copies" min="0" step="100" title="Fewer copies = rarer"></label>
+      <label><input type="checkbox" id="f-rare-only"> Rare only</label>
+      <label><input type="checkbox" id="f-hide-projected"> Hide projected</label>
+
+      <div class="presets">
+        <select id="preset-select"><option value="">— Presets —</option></select>
+        <button id="preset-save">Save as…</button>
+        <button id="preset-delete">Delete</button>
+        <button id="filters-clear">Clear filters</button>
+      </div>
+    </section>
+
     <p class="muted">
-      Showing items with a live lowest price (RAP within 1.5× budget).
+      Showing items with a live lowest price (RAP within 1.5× budget) that match the filters.
       <span id="count"></span> Click a column header to sort.
     </p>
     <div class="table-wrap">
