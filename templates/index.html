@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Limited Deals</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v=static_version) }}">
 </head>
 <body>
   <header>
@@ -50,10 +50,11 @@
         <button id="preset-delete">Delete</button>
         <button id="filters-clear">Clear filters</button>
       </div>
+      <strong id="filter-summary"></strong>
     </section>
 
     <section class="panel suggestions">
-      <h2>Suggestions <span class="muted">(within {{ budget }} R$, projected items left out)</span></h2>
+      <h2>Suggestions <span class="muted">(within {{ budget }} R$ and your filters, projected items left out)</span></h2>
       <div class="suggestion-lists">
         <div>
           <h3>💰 Deals now</h3>
@@ -122,6 +123,6 @@
     </div>
   </main>
 
-  <script src="{{ url_for('static', filename='app.js') }}"></script>
+  <script src="{{ url_for('static', filename='app.js', v=static_version) }}"></script>
 </body>
 </html>

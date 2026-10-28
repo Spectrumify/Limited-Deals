@@ -155,7 +155,11 @@ document.getElementById("filters").addEventListener("input", render);
 function render() {
   const filters = readFilters();
   const rows = items.filter(item => passesFilters(item, filters)).sort(compare);
+  const total = items.filter(item => item.lowest_price != null).length;
   document.getElementById("count").textContent = `${rows.length} items.`;
+  document.getElementById("filter-summary").textContent =
+    `Showing ${rows.length.toLocaleString()} of ${total.toLocaleString()} items`;
+  renderSuggestions();
 
   const tbody = document.querySelector("#items tbody");
   tbody.innerHTML = "";
@@ -323,9 +327,20 @@ const EMPTY_TEXT = {
   watch: "Nothing close yet.",
 };
 
+const SUGGESTIONS_SHOWN = 8;
+let suggestionLists = { deals: [], rising: [], watch: [] };
+
 async function loadSuggestions() {
-  const lists = await (await fetch("/api/suggestions")).json();
-  for (const [name, entries] of Object.entries(lists)) {
+  suggestionLists = await (await fetch("/api/suggestions")).json();
+  renderSuggestions();
+}
+
+// Suggestions follow the same filters as the table (except "Deals only" / "Rising only",
+// which would empty the other lists).
+function renderSuggestions() {
+  const filters = { ...readFilters(), deals_only: false, rising_only: false };
+  for (const [name, allEntries] of Object.entries(suggestionLists)) {
+    const entries = allEntries.filter(item => passesFilters(item, filters)).slice(0, SUGGESTIONS_SHOWN);
     const ol = document.getElementById(`sugg-${name}`);
     ol.innerHTML = "";
     if (entries.length === 0) {

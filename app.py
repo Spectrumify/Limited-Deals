@@ -15,6 +15,14 @@ from data_sources import DEMAND_NAMES, TREND_NAMES
 app = Flask(__name__)
 
 
+@app.context_processor
+def static_version():
+    """Adds ?v=<last change time> to CSS/JS links so the browser never uses an outdated copy."""
+    static_dir = os.path.join(app.root_path, "static")
+    newest = max(os.path.getmtime(os.path.join(static_dir, name)) for name in os.listdir(static_dir))
+    return {"static_version": int(newest)}
+
+
 @app.route("/")
 def index():
     return render_template("index.html", budget=BUDGET)
@@ -37,7 +45,8 @@ def api_items():
 
 @app.route("/api/suggestions")
 def api_suggestions():
-    return jsonify(deals.suggestions(evaluated_items(), BUDGET))
+    # Full lists (no limit): the page applies your filters, then shows the top few.
+    return jsonify(deals.suggestions(evaluated_items(), BUDGET, limit=None))
 
 
 @app.route("/api/settings", methods=["GET"])

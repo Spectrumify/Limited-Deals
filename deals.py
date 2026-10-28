@@ -147,7 +147,7 @@ def suggestions(items, budget, limit=8):
     """Pick items worth a look. `items` must already include the fields from evaluate().
 
     Returns {"deals": [...], "rising": [...], "watch": [...]}. Projected items
-    and anything above the budget are always left out.
+    and anything above the budget are always left out. limit=None returns every match.
     """
     candidates = [
         item for item in items
