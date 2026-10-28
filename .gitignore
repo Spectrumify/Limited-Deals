@@ -1,0 +1,13 @@
+# Secrets — NEVER commit these
+.env
+
+# Local data and logs
+*.db
+*.db-journal
+logs/
+
+# Python
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
