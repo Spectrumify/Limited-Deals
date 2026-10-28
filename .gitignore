@@ -1,6 +1,9 @@
 # Secrets — NEVER commit these
 .env
 
+# Half-written files from refresh_job.py (only finished files are committed)
+*.tmp
+
 # Local data and logs
 *.db
 *.db-journal

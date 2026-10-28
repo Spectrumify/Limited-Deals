@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Limited Deals</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Limited Deals</h1>
+    <span class="muted">Budget: <span id="budget">…</span> R$</span>
+    <span id="status" class="muted">Loading…</span>
+  </header>
+
+  <main>
+    <section id="filters" class="panel">
+      <label>Price min <input type="number" id="f-min-price" min="0" step="50" inputmode="numeric"></label>
+      <label>Price max <input type="number" id="f-max-price" min="0" step="50" inputmode="numeric"></label>
+      <label>Min demand
+        <select id="f-min-demand">
+          <option value="">Any</option>
+          <option value="1">Low+</option>
+          <option value="2">Normal+</option>
+          <option value="3">High+</option>
+          <option value="4">Amazing</option>
+        </select>
+      </label>
+      <fieldset>
+        <legend>Trend</legend>
+        <label><input type="checkbox" class="f-trend" value="3"> Rising</label>
+        <label><input type="checkbox" class="f-trend" value="2"> Stable</label>
+        <label><input type="checkbox" class="f-trend" value="0"> Falling</label>
+        <label><input type="checkbox" class="f-trend" value="1"> Unstable</label>
+        <label><input type="checkbox" class="f-trend" value="4"> Fluctuating</label>
+      </fieldset>
+      <label>Max copies <input type="number" id="f-max-copies" min="0" step="100" inputmode="numeric" title="Fewer copies = rarer"></label>
+      <label><input type="checkbox" id="f-rare-only"> Rare only</label>
+      <label><input type="checkbox" id="f-hide-projected"> Hide projected</label>
+      <label><input type="checkbox" id="f-deals-only"> Deals only</label>
+      <label><input type="checkbox" id="f-rising-only"> Rising only</label>
+
+      <div class="presets">
+        <select id="preset-select"><option value="">— Presets —</option></select>
+        <button id="preset-save">Save as…</button>
+        <button id="preset-delete">Delete</button>
+        <button id="filters-clear">Clear filters</button>
+      </div>
+      <strong id="filter-summary"></strong>
+    </section>
+
+    <section class="panel suggestions">
+      <h2>Suggestions <span class="muted">(within budget and your filters, projected items left out)</span></h2>
+      <div class="suggestion-lists">
+        <div>
+          <h3>💰 Deals now</h3>
+          <ol id="sugg-deals"></ol>
+        </div>
+        <div>
+          <h3>📈 Rising</h3>
+          <ol id="sugg-rising"></ol>
+        </div>
+        <div>
+          <h3>👀 Watch list <span class="muted">(closest to a deal)</span></h3>
+          <ol id="sugg-watch"></ol>
+        </div>
+      </div>
+      <p class="muted">
+        Suggestions only. This site never logs in to Roblox or buys anything. To buy, open the item on roblox.com
+        and buy it there yourself. Before buying, remember that resold items can have a holding period of up to 30 days,
+        and Roblox keeps 30% when you sell.
+      </p>
+    </section>
+
+    <details class="panel settings">
+      <summary>Deal settings</summary>
+      <p id="settings-text" class="muted"></p>
+      <p class="muted">
+        To change these (or your Discord alert filters), edit <code>docs/alerts.json</code> in the GitHub repo.
+        The next hourly run uses the new values. Presets saved on this page are stored on this device only.
+      </p>
+    </details>
+
+    <div class="table-wrap">
+      <table id="items">
+        <thead>
+          <tr>
+            <th data-key="name">Item</th>
+            <th data-key="lowest_price" class="num">Lowest price</th>
+            <th data-key="rap" class="num">RAP</th>
+            <th data-key="value" class="num">Value</th>
+            <th data-key="discount_pct" class="num">% below</th>
+            <th data-key="profit" class="num">Profit</th>
+            <th data-key="buy_below" class="num" title="Highest price that would count as a deal">Buy below</th>
+            <th data-key="demand">Demand</th>
+            <th data-key="trend">Trend</th>
+            <th data-key="total_quantity" class="num">Copies</th>
+            <th data-key="flags">Signals</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

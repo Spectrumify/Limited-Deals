@@ -141,6 +141,33 @@ def evaluate(item, settings):
     return result
 
 
+# ---------- Filters (same rules as passesFilters in the dashboard's app.js) ----------
+
+def passes_filters(item, f):
+    price = item.get("lowest_price")
+    if price is None:
+        return False
+    if f.get("min_price") is not None and price < f["min_price"]:
+        return False
+    if f.get("max_price") is not None and price > f["max_price"]:
+        return False
+    if f.get("min_demand") is not None and item["demand"] < f["min_demand"]:
+        return False
+    if f.get("trends") and item["trend"] not in f["trends"]:
+        return False
+    if f.get("max_copies") is not None and (item.get("total_quantity") is None or item["total_quantity"] > f["max_copies"]):
+        return False
+    if f.get("rare_only") and not item["rare"]:
+        return False
+    if f.get("hide_projected") and item["projected_warning"]:
+        return False
+    if f.get("deals_only") and not item["is_deal"]:
+        return False
+    if f.get("rising_only") and not item["rising"]:
+        return False
+    return True
+
+
 # ---------- Suggestions (read-only: you buy manually on roblox.com) ----------
 
 def suggestions(items, budget, limit=8):

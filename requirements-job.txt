@@ -1,0 +1,2 @@
+# Only what the GitHub Actions job (refresh_job.py) needs.
+requests==2.32.5

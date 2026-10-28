@@ -129,7 +129,8 @@ def fetch_lowest_prices(item_ids):
         body = {"items": [{"itemType": "Asset", "id": item_id} for item_id in batch]}
         try:
             data = client.request("POST", CATALOG_DETAILS_URL, json=body)
-        except RuntimeError as error:
+        except (RuntimeError, requests.RequestException) as error:
+            # Rate-limited, blocked, or offline: keep what we have so far.
             log.warning("%s; keeping cached prices for the remaining %d items", error, len(item_ids) - start)
             break
         for entry in data.get("data", []):

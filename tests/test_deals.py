@@ -119,6 +119,22 @@ def test_suggestions_skip_projected_and_over_budget():
     assert result == {"deals": [], "rising": [], "watch": []}
 
 
+# ---------- Filters (Python copy of the dashboard's passesFilters) ----------
+
+def test_passes_filters():
+    item = evaluated(lowest_price=1000, rap=2000, demand=3, trend=2, rare=False, total_quantity=500)
+    assert deals.passes_filters(item, {})
+    assert deals.passes_filters(item, {"min_price": 1, "max_price": 1200})
+    assert not deals.passes_filters(item, {"max_price": 999})
+    assert not deals.passes_filters(item, {"min_demand": 4})
+    assert deals.passes_filters(item, {"trends": [2, 3]})
+    assert not deals.passes_filters(item, {"trends": [3]})
+    assert not deals.passes_filters(item, {"max_copies": 100})
+    assert not deals.passes_filters(item, {"rare_only": True})
+    assert deals.passes_filters(item, {"deals_only": True})
+    assert not deals.passes_filters(evaluated(lowest_price=None, rap=2000), {})
+
+
 # ---------- Own projection detection ----------
 
 NOW = 10 * DAY

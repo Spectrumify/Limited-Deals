@@ -1,0 +1,15 @@
+{
+  "_help": "Edit this file on GitHub to change the cloud job. budget = max price for suggestions. deal_settings = when a listing counts as a deal. discord_filters = a deal is posted to Discord if it matches ANY of these (same fields as the dashboard filters).",
+  "budget": 5000,
+  "deal_settings": {
+    "min_discount_pct": 35,
+    "min_profit": 200,
+    "seller_keep_pct": 70,
+    "projection_ratio": 1.3,
+    "rising_pct": 10
+  },
+  "discord_filters": {
+    "Under 5k, high demand": {"max_price": 5000, "min_demand": 3, "hide_projected": true},
+    "Starting (1200)": {"min_price": 1, "max_price": 1200}
+  }
+}

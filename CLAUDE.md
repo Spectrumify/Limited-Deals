@@ -43,6 +43,19 @@ Only one copy may run at a time (two copies double the API traffic). `app.py` re
 - A deal alerts once per item + price (key `id:price`). The keys already alerted on and the on/off toggle are stored in the browser's localStorage.
 - Alerts only fire for deals that also pass the filters currently on screen. The tab must stay open.
 
+## Cloud version (main way to use it)
+- **`.github/workflows/refresh.yml`** runs `refresh_job.py` hourly at :17 UTC, and on demand (Actions tab → "Refresh data" → Run workflow, with an optional Discord test message). It commits `docs/data/` back to the repo.
+- **`refresh_job.py`** reuses `data_sources.py` and `deals.py`. It writes:
+  - `docs/data/items.json`: current items with deal fields already calculated.
+  - `docs/data/history/YYYY-MM-DD.csv`: hourly snapshots, kept 30 days.
+  - `docs/data/alerted.json`: Discord de-duplication.
+- **Safety rules:** if Rolimons fails or returns < 1,000 items, or Roblox prices load for < 50% of items, the job raises `SkipRun`, writes nothing, and exits 0 with a warning. Prices that weren't refreshed are kept but marked `stale` and can never be deals. Files are written via temp file + `os.replace`.
+- **`docs/alerts.json`**: budget, deal thresholds, and `discord_filters` (a deal is posted if it matches any filter). Edit it on GitHub.
+- **Discord:** webhook only from the `DISCORD_WEBHOOK_URL` Actions secret. Never log it; error logs show only the exception type or HTTP status. `allowed_mentions` is empty so item names can't ping anyone.
+- **GitHub Pages** serves `docs/` (static `index.html` + `app.js` reading `data/items.json`). The repo is public. Never commit secrets or personal info; commits use the GitHub no-reply email.
+- Only the bot commits to `docs/data/`; don't edit those files by hand (it avoids rebase conflicts).
+- Run the job locally with `venv\Scripts\python refresh_job.py`. Don't run it while the local Flask app is refreshing (double API traffic).
+
 ## Data sources
 - Rolimons `api.rolimons.com/items/v2/itemdetails`: values, RAP, demand, trend, projected. Fetch at most once per 60 s (their cache is 60 s; abusers get banned).
 - Roblox catalog batch details: lowest resale price and copy count, in batches of 120, spaced 6 s apart (shorter spacing caused 429s). Fetch only for items with RAP ≤ 1.5 × budget.
