@@ -66,6 +66,14 @@ button { cursor: pointer; }
 
 .toggle { font-size: 14px; cursor: pointer; }
 
+.suggestions { display: block; }
+.suggestions h2 { font-size: 16px; margin: 0 0 8px; }
+.suggestions h3 { font-size: 14px; margin: 0 0 6px; }
+.suggestion-lists { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.suggestions ol { margin: 0; padding-left: 20px; }
+.suggestions li { margin-bottom: 6px; }
+.suggestions li.empty { list-style: none; margin-left: -20px; }
+
 .table-wrap { overflow-x: auto; }
 table {
   width: 100%;

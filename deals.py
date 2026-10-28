@@ -25,6 +25,21 @@ def expected_profit(buy_price, target, seller_keep_pct):
     return math.floor(target * seller_keep_pct / 100) - buy_price
 
 
+def buy_below_price(target, settings):
+    """Highest price at which this item would count as a deal under the current thresholds.
+
+    Both rules must hold:
+      price <= target * (1 - min_discount_pct / 100)              (far enough below)
+      price <= floor(target * seller_keep_pct / 100) - min_profit  (enough profit after fee)
+    """
+    if not target:
+        return None
+    by_discount = target * (1 - settings["min_discount_pct"] / 100)
+    by_profit = math.floor(target * settings["seller_keep_pct"] / 100) - settings["min_profit"]
+    price = math.floor(min(by_discount, by_profit))
+    return price if price > 0 else None
+
+
 def discount_pct(buy_price, target):
     """How far below the target the price is, in % (negative = above target)."""
     if not target:
@@ -112,13 +127,48 @@ def evaluate(item, settings):
         "projected_warning": projected,
         "projected_reason": ", ".join(projected_reason),
         "rising": rising,
+        "buy_below": buy_below_price(target, settings),
     }
     if price and target:
-        result["discount_pct"] = round(discount_pct(price, target), 1)
+        exact_discount = discount_pct(price, target)
+        result["discount_pct"] = round(exact_discount, 1)  # rounded for display only
         result["profit"] = expected_profit(price, target, settings["seller_keep_pct"])
         result["is_deal"] = (
             not projected  # a "discount" against an inflated RAP is not a real discount
-            and result["discount_pct"] >= settings["min_discount_pct"]
+            and exact_discount >= settings["min_discount_pct"]
             and result["profit"] >= settings["min_profit"]
         )
     return result
+
+
+# ---------- Suggestions (read-only: you buy manually on roblox.com) ----------
+
+def suggestions(items, budget, limit=8):
+    """Pick items worth a look. `items` must already include the fields from evaluate().
+
+    Returns {"deals": [...], "rising": [...], "watch": [...]}. Projected items
+    and anything above the budget are always left out.
+    """
+    candidates = [
+        item for item in items
+        if item["lowest_price"] and item["lowest_price"] <= budget and not item["projected_warning"]
+    ]
+
+    deals = sorted((i for i in candidates if i["is_deal"]), key=lambda i: -i["profit"])
+
+    rising = sorted(
+        (i for i in candidates if i["rising"] and not i["is_deal"]),
+        key=lambda i: -(i.get("rap_change_pct") or 0),
+    )
+
+    # Watch list: not a deal yet, but the cheapest listing is closest to the buy-below price.
+    # gap = how many % the price would have to drop to become a deal.
+    watch = []
+    for item in candidates:
+        if item["is_deal"] or item["rising"] or not item["buy_below"]:
+            continue
+        gap = (item["lowest_price"] - item["buy_below"]) / item["lowest_price"] * 100
+        watch.append({**item, "drop_needed_pct": round(gap, 1)})
+    watch.sort(key=lambda i: i["drop_needed_pct"])
+
+    return {"deals": deals[:limit], "rising": rising[:limit], "watch": watch[:limit]}

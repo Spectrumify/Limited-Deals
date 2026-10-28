@@ -171,6 +171,7 @@ function render() {
       <td class="num">${formatRobux(item.value)}</td>
       <td class="num">${item.discount_pct == null ? "—" : item.discount_pct + "%"}</td>
       <td class="num ${item.profit > 0 ? "gain" : ""}">${formatRobux(item.profit)}</td>
+      <td class="num">${formatRobux(item.buy_below)}</td>
       <td>${item.demand_name}</td>
       <td>${item.trend_name}</td>
       <td class="num">${formatRobux(item.total_quantity)}</td>
@@ -301,7 +302,52 @@ document.querySelectorAll("th").forEach(th => {
 });
 
 async function refresh() {
-  await Promise.all([loadItems(), loadStatus()]);
+  await Promise.all([loadItems(), loadStatus(), loadSuggestions()]);
+}
+
+// ---------- Suggestions ----------
+
+function suggestionLine(item, list) {
+  const price = `${item.lowest_price.toLocaleString()} R$`;
+  if (list === "deals") return `${price}, ${item.discount_pct}% below ${item.target_source}, ~${item.profit.toLocaleString()} R$ profit`;
+  if (list === "rising") {
+    const why = item.rap_change_pct != null ? `RAP +${item.rap_change_pct.toFixed(0)}% in ${item.history_days.toFixed(1)} days` : "Rolimons: raising";
+    return `${price}, ${why}`;
+  }
+  return `${price} now, deal at ≤ ${item.buy_below.toLocaleString()} R$ (needs −${item.drop_needed_pct}%)`;
+}
+
+const EMPTY_TEXT = {
+  deals: "None right now. Good deals are rare; turn on alerts to catch them.",
+  rising: "None yet. Our own trend needs ~3 days of history.",
+  watch: "Nothing close yet.",
+};
+
+async function loadSuggestions() {
+  const lists = await (await fetch("/api/suggestions")).json();
+  for (const [name, entries] of Object.entries(lists)) {
+    const ol = document.getElementById(`sugg-${name}`);
+    ol.innerHTML = "";
+    if (entries.length === 0) {
+      const li = document.createElement("li");
+      li.className = "muted empty";
+      li.textContent = EMPTY_TEXT[name];
+      ol.appendChild(li);
+    }
+    for (const item of entries) {
+      const li = document.createElement("li");
+      const link = document.createElement("a");
+      link.href = `https://www.roblox.com/catalog/${item.id}`;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.textContent = item.name;
+      const detail = document.createElement("div");
+      detail.className = "muted";
+      detail.textContent = suggestionLine(item, name);
+      li.append(link, detail);
+      ol.appendChild(li);
+    }
+  }
 }
 
 // ---------- Deal settings ----------
@@ -325,7 +371,7 @@ settingsForm.addEventListener("submit", async event => {
   });
   const result = await response.json();
   document.getElementById("settings-msg").textContent = response.ok ? "Saved." : result.error;
-  if (response.ok) loadItems();  // deals are recalculated on the server
+  if (response.ok) refresh();  // deals and suggestions are recalculated on the server
 });
 
 loadSettings();

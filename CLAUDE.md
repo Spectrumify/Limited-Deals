@@ -28,6 +28,12 @@ Only one copy may run at a time (two copies double the API traffic). `app.py` re
 - Thresholds live in the `settings` table, editable in the page's "Deal settings" panel.
 - Rolimons only rates demand/trend for items it values by hand, so most cheap items have none.
 
+## Suggestions (`deals.suggestions`, `/api/suggestions`)
+- Read-only recommendations within `BUDGET`. Projected items are always excluded.
+- Lists: **Deals now** (by profit), **Rising** (by RAP change), **Watch list** (smallest % drop needed to reach the buy-below price).
+- Buy-below = the highest price that passes both deal thresholds (`deals.buy_below_price`), also shown as a table column.
+- Each suggestion only links to the item's roblox.com page.
+
 ## Alerts (`static/app.js`)
 - The page polls the local `/api/items` every 30 s and calls `checkForNewDeals()`.
 - A deal alerts once per item + price (key `id:price`). The keys already alerted on and the on/off toggle are stored in the browser's localStorage.
@@ -40,8 +46,8 @@ Only one copy may run at a time (two copies double the API traffic). `app.py` re
 
 ## Conventions
 - **All HTTP goes through `HttpClient` in `data_sources.py`.** It enforces per-host spacing, backoff on 429/5xx, and `Retry-After`. Never call `requests` directly elsewhere.
-- **Secrets live only in `.env`.** Never log, print, or commit the `ROBLOSECURITY` cookie. Send it only to `*.roblox.com` hosts.
-- **Buying is off by default, and test mode is on by default.** Every purchase needs a click in a confirm dialog, and every attempt is written to `purchase_log`.
+- **Zero account risk: this app never touches the owner's Roblox account.** No `.ROBLOSECURITY` cookie, no login, no purchase/trade/sell endpoints, no auto-buy. Use only public, unauthenticated read endpoints. Buying happens by hand on roblox.com. (The original auto-buy phase was deliberately replaced by Suggestions.)
+- `.env` holds local settings only (e.g. `BUDGET`) and stays git-ignored.
 - Keep deal/profit logic in `deals.py` as pure functions with tests.
 - Prefer simple, readable code over clever code. The owner is learning Python.
 - Build in phases. After each phase, run the app, verify it, then commit.

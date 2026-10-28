@@ -52,6 +52,29 @@
       </div>
     </section>
 
+    <section class="panel suggestions">
+      <h2>Suggestions <span class="muted">(within {{ budget }} R$, projected items left out)</span></h2>
+      <div class="suggestion-lists">
+        <div>
+          <h3>💰 Deals now</h3>
+          <ol id="sugg-deals"></ol>
+        </div>
+        <div>
+          <h3>📈 Rising</h3>
+          <ol id="sugg-rising"></ol>
+        </div>
+        <div>
+          <h3>👀 Watch list <span class="muted">(closest to a deal)</span></h3>
+          <ol id="sugg-watch"></ol>
+        </div>
+      </div>
+      <p class="muted">
+        Suggestions only. This app never logs in to Roblox or buys anything. To buy, open the item on roblox.com
+        and buy it there yourself. Before buying, remember that resold items can have a holding period of up to 30 days,
+        and Roblox keeps 30% when you sell.
+      </p>
+    </section>
+
     <details class="panel settings">
       <summary>Deal settings</summary>
       <form id="settings-form">
@@ -87,6 +110,7 @@
             <th data-key="value" class="num">Value</th>
             <th data-key="discount_pct" class="num">% below</th>
             <th data-key="profit" class="num">Profit</th>
+            <th data-key="buy_below" class="num" title="Highest price that would count as a deal under your settings">Buy below</th>
             <th data-key="demand">Demand</th>
             <th data-key="trend">Trend</th>
             <th data-key="total_quantity" class="num">Copies</th>

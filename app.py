@@ -20,15 +20,24 @@ def index():
     return render_template("index.html", budget=BUDGET)
 
 
-@app.route("/api/items")
-def api_items():
+def evaluated_items():
     settings = db.get_settings(deals.DEFAULT_SETTINGS)
     items = db.all_items()
     for item in items:
         item["demand_name"] = DEMAND_NAMES.get(item["demand"], "")
         item["trend_name"] = TREND_NAMES.get(item["trend"], "")
         item.update(deals.evaluate(item, settings))
-    return jsonify(items)
+    return items
+
+
+@app.route("/api/items")
+def api_items():
+    return jsonify(evaluated_items())
+
+
+@app.route("/api/suggestions")
+def api_suggestions():
+    return jsonify(deals.suggestions(evaluated_items(), BUDGET))
 
 
 @app.route("/api/settings", methods=["GET"])
