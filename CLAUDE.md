@@ -16,6 +16,8 @@ venv\Scripts\python app.py
 ```
 Then open http://127.0.0.1:5000. Stop it with Ctrl+C. Run tests with `venv\Scripts\python -m pytest`.
 
+**Desktop shortcut:** `install-desktop-shortcut.ps1` creates "Limited Deals" on the desktop. It runs `launch.pyw` with `pythonw.exe`, which starts the server minimized if it isn't already running, then opens the dashboard in the browser.
+
 **Auto-start at login:** `install-startup.ps1` puts a "Limited Deals" shortcut in the Windows Startup folder. It runs `venv\Scripts\python.exe app.py` in a minimized window, and closing that window stops it. Undo with `remove-startup.ps1`. Run either with `powershell -ExecutionPolicy Bypass -File <script>`. History (and so the Rising/projection signals) is only recorded while the server is running.
 
 Only one copy may run at a time (two copies double the API traffic). `app.py` refuses to start if port 5000 is already in use.
