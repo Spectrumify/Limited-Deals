@@ -64,6 +64,8 @@ input, select, button { font: inherit; color: var(--text); background: var(--bg)
 input[type="checkbox"] { padding: 0; }
 button { cursor: pointer; }
 
+.toggle { font-size: 14px; cursor: pointer; }
+
 .table-wrap { overflow-x: auto; }
 table {
   width: 100%;

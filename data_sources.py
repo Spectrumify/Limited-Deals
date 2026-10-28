@@ -134,7 +134,8 @@ def fetch_lowest_prices(item_ids):
             break
         for entry in data.get("data", []):
             results[entry["id"]] = {
-                "lowest_price": entry.get("lowestResalePrice"),
+                # Roblox reports "nobody is selling" as 0; store that as no price.
+                "lowest_price": entry.get("lowestResalePrice") or None,
                 "total_quantity": entry.get("totalQuantity"),
                 "collectible_item_id": entry.get("collectibleItemId"),
             }

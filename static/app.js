@@ -192,7 +192,92 @@ async function loadItems() {
   const response = await fetch("/api/items");
   items = await response.json();
   render();
+  checkForNewDeals();
 }
+
+// ---------- Alerts ----------
+// A deal is identified by item + price, so the same listing only alerts once,
+// but a new, cheaper listing of the same item alerts again.
+
+function dealKey(item) {
+  return `${item.id}:${item.lowest_price}`;
+}
+
+// Pure function (no browser APIs) so it can be tested on its own.
+function findNewDeals(allItems, filters, seenKeys) {
+  return allItems.filter(item => item.is_deal && passesFilters(item, filters) && !seenKeys.has(dealKey(item)));
+}
+
+// Remember which deals we already alerted about, even across page reloads.
+// Wrapped in try/catch because browser storage can be blocked.
+function loadSeen() {
+  try { return new Set(JSON.parse(localStorage.getItem("seenDeals") || "[]")); } catch { return new Set(); }
+}
+function saveSeen(seen) {
+  try { localStorage.setItem("seenDeals", JSON.stringify([...seen].slice(-2000))); } catch {}
+}
+function alertsEnabled() {
+  try { return localStorage.getItem("alertsEnabled") === "1"; } catch { return false; }
+}
+function setAlertsEnabled(on) {
+  try { localStorage.setItem("alertsEnabled", on ? "1" : "0"); } catch {}
+}
+
+function notify(title, body, url) {
+  const note = new Notification(title, { body, tag: url || title });
+  if (url) note.onclick = () => window.open(url, "_blank");
+}
+
+function checkForNewDeals() {
+  if (!alertsEnabled() || !("Notification" in window) || Notification.permission !== "granted") return;
+  const seen = loadSeen();
+  const newDeals = findNewDeals(items, readFilters(), seen);
+  if (newDeals.length === 0) return;
+
+  newDeals.sort((a, b) => b.profit - a.profit);
+  if (newDeals.length <= 3) {
+    for (const item of newDeals) {
+      notify(`💰 Deal: ${item.name}`,
+        `${item.lowest_price.toLocaleString()} R$ (${item.discount_pct}% below ${item.target_source}), ` +
+        `~${item.profit.toLocaleString()} R$ profit after fee`,
+        `https://www.roblox.com/catalog/${item.id}`);
+    }
+  } else {
+    const best = newDeals[0];
+    notify(`💰 ${newDeals.length} new deals`, `Best: ${best.name} for ${best.lowest_price.toLocaleString()} R$ (~${best.profit.toLocaleString()} R$ profit)`);
+  }
+  newDeals.forEach(item => seen.add(dealKey(item)));
+  saveSeen(seen);
+  document.getElementById("alerts-msg").textContent =
+    `Last alert ${new Date().toLocaleTimeString()}: ${newDeals.length} new deal(s)`;
+}
+
+const alertsToggle = document.getElementById("alerts-toggle");
+
+alertsToggle.addEventListener("change", async () => {
+  const msg = document.getElementById("alerts-msg");
+  if (!alertsToggle.checked) {
+    setAlertsEnabled(false);
+    msg.textContent = "Alerts off.";
+    return;
+  }
+  if (!("Notification" in window)) {
+    alertsToggle.checked = false;
+    msg.textContent = "This browser doesn't support notifications.";
+    return;
+  }
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") {
+    alertsToggle.checked = false;
+    msg.textContent = "Notifications are blocked. Allow them for 127.0.0.1 in your browser's site settings.";
+    return;
+  }
+  setAlertsEnabled(true);
+  msg.textContent = "Alerts on. Keep this tab open (it can be in the background).";
+  checkForNewDeals();
+});
+
+alertsToggle.checked = alertsEnabled() && "Notification" in window && Notification.permission === "granted";
 
 async function loadStatus() {
   const status = await (await fetch("/api/status")).json();

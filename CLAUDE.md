@@ -28,6 +28,11 @@ Only one copy may run at a time (two copies double the API traffic). `app.py` re
 - Thresholds live in the `settings` table, editable in the page's "Deal settings" panel.
 - Rolimons only rates demand/trend for items it values by hand, so most cheap items have none.
 
+## Alerts (`static/app.js`)
+- The page polls the local `/api/items` every 30 s and calls `checkForNewDeals()`.
+- A deal alerts once per item + price (key `id:price`). The keys already alerted on and the on/off toggle are stored in the browser's localStorage.
+- Alerts only fire for deals that also pass the filters currently on screen. The tab must stay open.
+
 ## Data sources
 - Rolimons `api.rolimons.com/items/v2/itemdetails`: values, RAP, demand, trend, projected. Fetch at most once per 60 s (their cache is 60 s; abusers get banned).
 - Roblox catalog batch details: lowest resale price and copy count, in batches of 120, spaced 6 s apart (shorter spacing caused 429s). Fetch only for items with RAP ≤ 1.5 × budget.
