@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Limited Deals</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <h1>Limited Deals</h1>
+    <span class="muted">Budget: {{ budget }} R$</span>
+    <span id="status" class="muted">Loading…</span>
+  </header>
+
+  <main>
+    <p class="muted">
+      Showing items with a live lowest price (RAP within 1.5× budget).
+      <span id="count"></span> Click a column header to sort.
+    </p>
+    <div class="table-wrap">
+      <table id="items">
+        <thead>
+          <tr>
+            <th data-key="name">Item</th>
+            <th data-key="lowest_price" class="num">Lowest price</th>
+            <th data-key="rap" class="num">RAP</th>
+            <th data-key="value" class="num">Value</th>
+            <th data-key="demand">Demand</th>
+            <th data-key="trend">Trend</th>
+            <th data-key="total_quantity" class="num">Copies</th>
+            <th data-key="flags">Flags</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
