@@ -19,7 +19,7 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) limited-deals-local/0.1"
 # Minimum seconds between two requests to the same host.
 MIN_SPACING = {
     "api.rolimons.com": 60.0,
-    "catalog.roblox.com": 3.0,  # 1.5 s triggered occasional 429s
+    "catalog.roblox.com": 6.0,  # 1.5-3 s triggered 429s; 6 s spreads ~11 batches over a minute
 }
 DEFAULT_SPACING = 2.0
 MAX_RETRIES = 4
@@ -68,11 +68,13 @@ class HttpClient:
 
     @staticmethod
     def _backoff_seconds(response, attempt):
+        # 5 s, 10 s, 20 s, 40 s ... plus a little randomness ("jitter")
+        wait = 5 * (2 ** attempt) + random.uniform(0, 2)
+        # If the server says how long to wait, wait at least that long.
         retry_after = response.headers.get("Retry-After")
         if retry_after and retry_after.isdigit():
-            return float(retry_after)
-        # 5 s, 10 s, 20 s, 40 s ... plus a little randomness ("jitter")
-        return 5 * (2 ** attempt) + random.uniform(0, 2)
+            wait = max(wait, float(retry_after))
+        return wait
 
 
 client = HttpClient()
@@ -116,12 +118,20 @@ CATALOG_BATCH_SIZE = 120
 
 
 def fetch_lowest_prices(item_ids):
-    """Return {item_id: {"lowest_price", "total_quantity", "collectible_item_id"}}."""
+    """Return {item_id: {"lowest_price", "total_quantity", "collectible_item_id"}}.
+
+    If Roblox keeps rate-limiting us, stop early and return what we have;
+    the other items keep their cached prices until the next round.
+    """
     results = {}
     for start in range(0, len(item_ids), CATALOG_BATCH_SIZE):
         batch = item_ids[start:start + CATALOG_BATCH_SIZE]
         body = {"items": [{"itemType": "Asset", "id": item_id} for item_id in batch]}
-        data = client.request("POST", CATALOG_DETAILS_URL, json=body)
+        try:
+            data = client.request("POST", CATALOG_DETAILS_URL, json=body)
+        except RuntimeError as error:
+            log.warning("%s; keeping cached prices for the remaining %d items", error, len(item_ids) - start)
+            break
         for entry in data.get("data", []):
             results[entry["id"]] = {
                 "lowest_price": entry.get("lowestResalePrice"),

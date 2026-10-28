@@ -37,6 +37,8 @@
       <label>Max copies <input type="number" id="f-max-copies" min="0" step="100" title="Fewer copies = rarer"></label>
       <label><input type="checkbox" id="f-rare-only"> Rare only</label>
       <label><input type="checkbox" id="f-hide-projected"> Hide projected</label>
+      <label><input type="checkbox" id="f-deals-only"> Deals only</label>
+      <label><input type="checkbox" id="f-rising-only"> Rising only</label>
 
       <div class="presets">
         <select id="preset-select"><option value="">— Presets —</option></select>
@@ -45,6 +47,27 @@
         <button id="filters-clear">Clear filters</button>
       </div>
     </section>
+
+    <details class="panel settings">
+      <summary>Deal settings</summary>
+      <form id="settings-form">
+        <label>Min % below value/RAP <input type="number" name="min_discount_pct" min="0" max="100" step="1"></label>
+        <label>Min profit after fee (R$) <input type="number" name="min_profit" min="0" step="10"></label>
+        <label title="Classic limiteds: Roblox takes 30%, you keep 70%. Check what Roblox's sell screen shows.">
+          You keep % of sale <input type="number" name="seller_keep_pct" min="1" max="100" step="1"></label>
+        <label title="Warn when RAP jumps by this factor but listings don't follow">
+          Projection jump × <input type="number" name="projection_ratio" min="1" step="0.05"></label>
+        <label title="RAP and listings both up this % over our saved history">
+          Rising if up % <input type="number" name="rising_pct" min="0" step="1"></label>
+        <button type="submit">Save settings</button>
+        <span id="settings-msg" class="muted"></span>
+      </form>
+      <p class="muted">
+        A listing is a <b>deal</b> when it is at least the % below the item's value (or RAP if unvalued)
+        <b>and</b> reselling at that value would earn at least the minimum profit after the fee.
+        Projected items are never deals. Our own trend needs about 3 days of saved history to start working.
+      </p>
+    </details>
 
     <p class="muted">
       Showing items with a live lowest price (RAP within 1.5× budget) that match the filters.
@@ -58,10 +81,12 @@
             <th data-key="lowest_price" class="num">Lowest price</th>
             <th data-key="rap" class="num">RAP</th>
             <th data-key="value" class="num">Value</th>
+            <th data-key="discount_pct" class="num">% below</th>
+            <th data-key="profit" class="num">Profit</th>
             <th data-key="demand">Demand</th>
             <th data-key="trend">Trend</th>
             <th data-key="total_quantity" class="num">Copies</th>
-            <th data-key="flags">Flags</th>
+            <th data-key="flags">Signals</th>
           </tr>
         </thead>
         <tbody></tbody>

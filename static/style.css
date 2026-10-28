@@ -6,6 +6,8 @@
   --border: #e2e2e6;
   --accent: #2563eb;
   --warn-bg: #fff4e5;
+  --deal-bg: #e8f7ec;
+  --gain: #15803d;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -16,6 +18,8 @@
     --border: #2e2e35;
     --accent: #6ea0ff;
     --warn-bg: #3a2a12;
+    --deal-bg: #12321d;
+    --gain: #4ade80;
   }
 }
 
@@ -72,3 +76,8 @@ th { cursor: pointer; user-select: none; position: sticky; top: 0; background: v
 th.sorted::after { content: " " attr(data-dir); }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
 tr.projected { background: var(--warn-bg); }
+tr.deal { background: var(--deal-bg); }
+.gain { color: var(--gain); }
+.settings { display: block; }
+.settings summary { cursor: pointer; font-weight: 600; }
+.settings form { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin-top: 10px; }
