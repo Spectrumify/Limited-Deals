@@ -1,21 +1,15 @@
-# Puts a "Limited Deals" shortcut on your desktop. Double-click it to open the dashboard
-# (it starts the server first if it isn't already running).
+# Puts a "Limited Deals" icon on your desktop that opens the online dashboard (GitHub Pages).
 # Run:  powershell -ExecutionPolicy Bypass -File install-desktop-shortcut.ps1
+#
+# (To run the old local version instead, double-click launch.pyw in this folder.)
 
-$project = $PSScriptRoot
-$pythonw = Join-Path $project "venv\Scripts\pythonw.exe"
-if (-not (Test-Path $pythonw)) {
-    Write-Error "venv not found. Create it first (see CLAUDE.md)."
-    exit 1
-}
+$url = "https://spectrumify.github.io/Limited-Deals/"
+$desktop = [Environment]::GetFolderPath("Desktop")
 
-$shortcutPath = Join-Path ([Environment]::GetFolderPath("Desktop")) "Limited Deals.lnk"
-$shell = New-Object -ComObject WScript.Shell
-$shortcut = $shell.CreateShortcut($shortcutPath)
-$shortcut.TargetPath = $pythonw
-$shortcut.Arguments = "launch.pyw"
-$shortcut.WorkingDirectory = $project
-$shortcut.Description = "Open the Limited Deals dashboard"
-$shortcut.Save()
+# Remove the older shortcut that started the local server.
+$oldShortcut = Join-Path $desktop "Limited Deals.lnk"
+if (Test-Path $oldShortcut) { Remove-Item $oldShortcut }
 
-Write-Output "Created: $shortcutPath"
+$shortcutPath = Join-Path $desktop "Limited Deals.url"
+Set-Content -Path $shortcutPath -Encoding ASCII -Value "[InternetShortcut]`r`nURL=$url"
+Write-Output "Created: $shortcutPath -> $url"
