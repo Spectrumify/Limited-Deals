@@ -22,6 +22,7 @@ MIN_SPACING = {
     "catalog.roblox.com": 6.0,  # 1.5-3 s triggered 429s; 6 s spreads ~11 batches over a minute
 }
 DEFAULT_SPACING = 2.0
+MAX_SPACING = 60.0  # adaptive spacing never grows past this
 MAX_RETRIES = 4
 
 
@@ -31,10 +32,21 @@ class HttpClient:
         self.session.headers["User-Agent"] = USER_AGENT
         self.session.headers["Accept"] = "application/json"
         self.last_call = {}   # host -> time of last request
+        self.spacing = {}     # host -> current spacing; grows when a host rate-limits us
         self.csrf_token = ""  # Roblox wants this on POST requests
 
+    def spacing_for(self, host):
+        return self.spacing.get(host, MIN_SPACING.get(host, DEFAULT_SPACING))
+
+    def slow_down(self, host):
+        """After a 429, space out requests to this host more (for the rest of this run)."""
+        new_spacing = min(max(self.spacing_for(host) * 2, 10.0), MAX_SPACING)
+        if new_spacing != self.spacing_for(host):
+            log.info("%s is rate-limiting us; now waiting %.0f s between requests", host, new_spacing)
+        self.spacing[host] = new_spacing
+
     def _wait_for_turn(self, host):
-        spacing = MIN_SPACING.get(host, DEFAULT_SPACING)
+        spacing = self.spacing_for(host)
         elapsed = time.time() - self.last_call.get(host, 0)
         if elapsed < spacing:
             time.sleep(spacing - elapsed)
@@ -56,6 +68,8 @@ class HttpClient:
                 continue
 
             if response.status_code == 429 or response.status_code >= 500:
+                if response.status_code == 429:
+                    self.slow_down(host)
                 wait = self._backoff_seconds(response, attempt)
                 log.warning("%s %s -> HTTP %s, backing off %.0f s", method, host, response.status_code, wait)
                 time.sleep(wait)

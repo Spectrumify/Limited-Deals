@@ -22,6 +22,18 @@ def test_backoff_respects_long_retry_after():
     assert HttpClient._backoff_seconds(FakeResponse({"Retry-After": "120"}), 0) == 120
 
 
+def test_spacing_grows_after_rate_limit_and_is_capped():
+    client = HttpClient()
+    host = "catalog.roblox.com"
+    assert client.spacing_for(host) == 6.0
+    client.slow_down(host)
+    assert client.spacing_for(host) == 12.0
+    for _ in range(10):
+        client.slow_down(host)
+    assert client.spacing_for(host) == 60.0
+    assert client.spacing_for("api.rolimons.com") == 60.0  # other hosts unaffected
+
+
 def test_short_retry_after_does_not_stop_backoff_growing():
     # Roblox sent Retry-After: 5 every time, which kept us retrying too fast.
     assert HttpClient._backoff_seconds(FakeResponse({"Retry-After": "5"}), 3) >= 40
