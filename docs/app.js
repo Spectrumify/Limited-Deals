@@ -287,7 +287,8 @@ async function loadData() {
     const updated = new Date(data.generated_at * 1000);
     const minutesAgo = Math.round((Date.now() - updated) / 60000);
     status.textContent = `Updated ${updated.toLocaleString()} (${minutesAgo} min ago)` +
-      (minutesAgo > 150 ? " ⚠️ the hourly job may be failing" : "");
+      // GitHub often runs the schedule only every 4-8 hours, so warn only after a long gap.
+      (minutesAgo > 12 * 60 ? " ⚠️ the refresh job may be failing" : "");
     render();
   } catch (error) {
     status.textContent = `⚠️ Couldn't load data (${error.message}). Try again in a minute.`;
